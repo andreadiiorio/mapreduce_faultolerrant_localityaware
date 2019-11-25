@@ -199,9 +199,8 @@ func InitRPCWorkerIstance(initData *GenericInternalState, port int, kind int, wo
 		workerNodeInt.Instances[newId] = workerIstanceData
 	}
 	// Listen for incoming tcp packets on port by specified offset of port base.
-	go workerIstanceData.ServerRpc.Accept(l) //TODO 4EVER BLOCK-> EXIT CONDITION DEFINE see under
-	//TODO ON TEST FAULT TOLLERANT ON KILL SERVER CLOSING LISTENING SOCKET
-	//_:=l.Close()           	//TODO will unblock rpc requests handler routine
+	go workerIstanceData.ServerRpc.Accept(l)
+	//_:=l.Close()
 	//runtime.Goexit()    		//routine end here
 	return nil, newId
 }

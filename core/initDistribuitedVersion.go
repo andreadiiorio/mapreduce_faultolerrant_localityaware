@@ -46,7 +46,9 @@ type MASTER_STATE_DATA struct {
 }
 
 func Init_distribuited_version(control *MASTER_CONTROL, filenames []string, loadChunksToS3 bool) (*aws_SDK_wrap.UPLOADER, []int, error) {
-	///initialize data and workers referement
+	///initialize data and workers refs on master
+	//if loadChunkToS3 is true will be also published master public IP address on S3 bucket so workers can register (from a cli opt)
+	// concurrent intialization by go routine and waitgroup
 
 	barrier := new(sync.WaitGroup)
 	barrier.Add(2)
@@ -131,8 +133,8 @@ func BuildSequentialIDsListUpTo(maxID int) []int {
 
 func waitWorkersRegister(waitGroup **sync.WaitGroup, control *MASTER_CONTROL, uploader *aws_SDK_wrap.UPLOADER) error {
 	//setup worker register service tcp port at master
-	//publish this address to workers
-	//wait workers to registry to master
+	//wait workers to registry to master up to some configurable time from first registration (deadline set on socket)
+	//for flexibility on relay server between Master and Workers, is now mantained old version of Workers IP prepending in reg msgs) <- minimal overhead
 
 	port := Config.WORKER_REGISTER_SERVICE_BASE_PORT
 	conn, err := net.ListenTCP("tcp", &net.TCPAddr{

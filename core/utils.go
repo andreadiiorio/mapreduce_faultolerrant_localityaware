@@ -528,8 +528,6 @@ func PingHeartBitSnd(addr string) (error, byte) {
 	defer ephemeralConn.Close();*/
 
 	timeout := time.Millisecond * time.Duration(Config.PING_TIMEOUT_MILLISECONDS)
-	//var pong,ping byte =0,PING	//fuck go
-	//var pong,ping byte =2,1
 	pong := make([]byte, 1)
 	ping := make([]byte, 1)
 	//myEndianess := GetEndianess()

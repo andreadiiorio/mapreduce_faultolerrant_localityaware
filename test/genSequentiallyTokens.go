@@ -1,6 +1,8 @@
 package main
 
 //generate final tokens on same input of distribuited version for matching output results
+//for good matching needed same config on chunkization and mappers num
+//basically best visual test of correctness is vim diff :=)
 import (
 	"../core"
 	"bufio"
@@ -13,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 const (

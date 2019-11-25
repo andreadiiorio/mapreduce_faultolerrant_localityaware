@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const LOCAL_MASTER_REPLICA = true //TODO DOUBLE NAT WITH SSH PORT FORWARD EC2 SERVER FLAG TO TEST REPLICA LOCALLY
+const LOCAL_MASTER_REPLICA = true
 
 func ReducersReplacementRecovery(failedWorkersReducers map[int][]int, oldReducersBindings map[int]int, workersKinds *core.WorkersKinds) map[int]int {
 	//re decide reduce placement on workers selecting a random healty worker
@@ -85,16 +85,7 @@ func MapPhaseRecovery(masterControl *core.MASTER_CONTROL, failedJobs map[int][]i
 			println("worker maps lost :", workerID, " # -> ", len(workerMapJobsToReassign[workerID]))
 		}
 	}
-	/*for _, mapResult := range (*masterControl).MasterData.MapResults {
-		errdMap := core.CheckErr(mapResult.Err, false, "WORKER id:"+strconv.Itoa(mapResult.WorkerId)+" ON MAPS JOB ASSIGN")
-		failedWorker := errdMap || moreFails[mapResult.WorkerId]
-		if failedWorker {
-			//todo wtf??? workerMapJobsToReassign[mapResult.WorkerId] = mapResult.MapJobArgs.ChunkIds //schedule to reassign only not redundant share of chunks on worker
-			workerMapJobsToReassign[mapResult.WorkerId] = mapResult.MapJobArgs.ChunkIdsFairShare //schedule to reassign only not redundant share of chunks on worker
-		} else {
-			filteredMapResults = append(filteredMapResults, mapResult)
-		}
-	}*/
+
 	if failedJobs != nil { //eventually insert passed failed jobs
 		for workerID, jobs := range failedJobs {
 			_, alreadyKnowWorkerFailed := workerMapJobsToReassign[workerID]
@@ -359,18 +350,8 @@ func refreshConnections(masterControl *core.MASTER_CONTROL) map[int]bool {
 		}
 	}
 
-	//TODO DEFINE BETTER LOGIC IN ACCORD OF MORE FAILS HAS FILTERED OUT DEAD WORKER -> RE SEARCHED IN EVENTUAL ERROR RECOVERY
 	morefails := core.PingProbeAlivenessFilter(masterControl, true)
 	println("while refreshing workers connection founded failed worker: ", len(failedWorkers), "\t more fails:", len(morefails))
-	/*/// Filtering away dead workers from actual map assignements
-	fairShareAssignementFiltered := make(map[int][]int)
-	for workerID, chunks := range masterControl.MasterData.AssignedChunkWorkersFairShare {
-		w:=core.GetWorker(workerID,&masterControl.Workers,false)
-		_, failedWorker := failedWorkers[workerID]
-		if !failedWorker && w!=nil {
-			fairShareAssignementFiltered[workerID] = chunks // append fair share of worker only if hasn't failed during master respawn
-		}
-	}*/ //TODO OLD
 	///// wait until all worker are idle and re filter away eventual failed worker in between
 	/// evaluate to exit on too much faults
 	if len(masterControl.WorkersAll)-int(core.Max(int64(len(morefails)), int64(len(failedWorkers)))) < core.Config.MIN_WORKERS_NUM {

@@ -26,9 +26,8 @@ import (
 	at the end of map workers will return only their distribuition of bindings of intermediate data derived from map processing to reducers
 	reflecting distribution of interm.tokens among workers.
 	on fault of a mapper master will re assigned failed map jobs exploiting data locality of chunks replication among workers
-	so some jobs may be unnecessary to be rescheduled.
-	Master will exploit this to select best worker node to host reducer instances producing reducer bindings to comunicate to mappers
-	mappers will route the right share (pre  aggregated with a combiner logic) of their interm data (comunicated by master by IDs)
+	Master will exploit map outputs to select best workers nodes to host reducer instances producing reducer bindings to comunicate to mappers
+	mappers will route the right share (pre  aggregated with a combiner logic if not failed after first reduce) of their interm data (comunicated by master by IDs)
 	to reducer. In that route data locality of interm. data is exploited because reducers placement will avoid biggest data share to send
 	for load balancing and fault tollerantit's possible to configure in config.json a number of reducer instances that have to be spawned on isolated node
 	reducer will terminate when all of expected interm.data is received (each interm.data sent from mapper contains the source chunks IDs that has generated it)
@@ -94,7 +93,7 @@ func main() {
 		os.Exit(96)
 	}
 
-	masterData := masterRpcInit()
+	masterData := masterRpcInit() //init master rpc server to let Reducers return final aggregated outputs
 	MasterControl.MasterRpc = masterData
 	masterLogic(core.CHUNK_ASSIGN, &MasterControl, false, uploader)
 }
@@ -103,7 +102,7 @@ const SIMULATE_MASTER_CRUSH = true
 
 func masterLogic(startPoint uint32, masterControl *core.MASTER_CONTROL, isReplica bool, uploader *aws_SDK_wrap.UPLOADER) {
 	//Core logic of generic master (replica or not)
-	//map reduce phase
+	//Master replica on need has the possibility to jump to map  or reduce phase by startPoint
 	var startTime time.Time
 	var err bool
 	var e error
